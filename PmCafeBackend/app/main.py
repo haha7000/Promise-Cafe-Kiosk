@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.routers import auth, menus, cells, orders, categories, options, statistics, settlements
@@ -9,6 +10,21 @@ app = FastAPI(
     description="교회 카페 키오스크 백엔드 API",
     version="1.0.0",
 )
+
+
+# Custom exception handler for HTTPException
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Custom handler to unwrap detail if it's a dict"""
+    if isinstance(exc.detail, dict):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=exc.detail
+        )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
 
 # CORS 설정 (환경변수에서 로드)
 app.add_middleware(

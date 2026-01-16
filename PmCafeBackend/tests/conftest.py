@@ -128,3 +128,79 @@ def sample_cell(db_session):
     db_session.commit()
     db_session.refresh(cell)
     return cell
+
+
+# Additional fixtures for service layer tests
+
+@pytest.fixture
+def test_menu(db_session, sample_categories):
+    """Create a test menu"""
+    from app.models.menu import Menu
+
+    menu = Menu(
+        name="아메리카노",
+        price=5000,
+        category_id=sample_categories[0].id,  # COFFEE
+        description="진한 에스프레소",
+        is_active=True,
+        is_sold_out=False
+    )
+    db_session.add(menu)
+    db_session.commit()
+    db_session.refresh(menu)
+    return menu
+
+
+@pytest.fixture
+def test_cell(db_session):
+    """Create a test cell with sufficient balance"""
+    from app.models.cell import Cell
+
+    cell = Cell(
+        name="테스트셀",
+        leader="테스트리더",
+        phone_last4="5678",
+        balance=50000
+    )
+    db_session.add(cell)
+    db_session.commit()
+    db_session.refresh(cell)
+    return cell
+
+
+@pytest.fixture
+def test_option_item(db_session, sample_option_groups):
+    """Get first option item"""
+    return sample_option_groups[0].items[0] if sample_option_groups[0].items else None
+
+
+@pytest.fixture
+def test_order(db_session, test_menu):
+    """Create a test order"""
+    from app.models.order import Order, OrderItem, OrderStatus, PayType
+
+    order = Order(
+        order_id="ORD-test-123456",
+        daily_num=1,
+        pay_type=PayType.PERSONAL,
+        total_amount=5000,
+        status=OrderStatus.PENDING
+    )
+    db_session.add(order)
+    db_session.commit()
+    db_session.refresh(order)
+
+    # Add order item
+    order_item = OrderItem(
+        order_id=order.id,
+        menu_id=test_menu.id,
+        menu_name=test_menu.name,
+        menu_price=test_menu.price,
+        quantity=1,
+        total_price=test_menu.price
+    )
+    db_session.add(order_item)
+    db_session.commit()
+
+    db_session.refresh(order)
+    return order

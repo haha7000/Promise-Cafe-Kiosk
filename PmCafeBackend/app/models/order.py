@@ -36,11 +36,13 @@ class Order(Base):
     total_amount = Column(Integer, nullable=False)
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)
     cancelled_at = Column(DateTime(timezone=True), nullable=True)
 
     # 관계
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    cell = relationship("Cell", foreign_keys=[cell_id])
 
     def __repr__(self):
         return f"<Order(id={self.id}, order_id='{self.order_id}', daily_num={self.daily_num}, status='{self.status}')>"
